@@ -35,30 +35,41 @@ weathercode = {
     99 : "軽いひょうをともなうらい雨",
 }
 
-# 地名から緯度と経度の情報を手に入れる
-val = input("天気の情報を手に入れたい市区町村名・地名等を入れてください；")
+def main():
+    # 地名から緯度と経度の情報を手に入れる
+    val = input("天気の情報を手に入れたい市区町村名・地名等を入れてください；")
 
-try:
-    location = geolocator.geocode(val)
-    ido = location.latitude      #緯度
-    keido = location.longitude     #経度
-except Exception as e:
-    print("エラーが発生しました。プログラムを終了します。")
-    exit()
+    print(geocodeing(val))
 
-weather_api = "https://api.open-meteo.com/v1/forecast?latitude=" + str(ido) + "&longitude=" + str(keido) + "&hourly=temperature_2m,precipitation_probability,weathercode&timezone=Asia%2FTokyo&forecast_days=1&models=best_match"
+def geocodeing(val):
+    try:
+        location = geolocator.geocode(val)
+        ido = location.latitude      #緯度
+        keido = location.longitude     #経度
 
-api_info = requests.get(weather_api)
-json_data = api_info.json()
+        result = fetch_api(ido, keido)
 
-#print(json_data)
+        return result
+    except Exception as e:
+        print("エラーが発生しました。プログラムを終了します。")
+        exit()
 
-weather_ja = []
-for i in range(0, len(json_data['hourly']['weathercode'])):
-    weather_ja.append(weathercode[json_data['hourly']['weathercode'][i]])
+def fetch_api(ido, keido):
+    weather_api = "https://api.open-meteo.com/v1/forecast?latitude=" + str(ido) + "&longitude=" + str(keido) + "&hourly=temperature_2m,precipitation_probability,weathercode&timezone=Asia%2FTokyo&forecast_days=1&models=best_match"
 
-for i in range(0, len(json_data['hourly']['time'])):
-    print(json_data['hourly']['time'][i] +
-          " 気温：" + str(json_data['hourly']['temperature_2m'][i]) +
-          "℃ 降水確率：" + str(json_data['hourly']['precipitation_probability'][i])
-          + "％ 天気：" + weather_ja[i])
+    api_info = requests.get(weather_api)
+    json_data = api_info.json()
+
+    #print(json_data)
+
+    weather_ja = []
+    for i in range(0, len(json_data['hourly']['weathercode'])):
+        weather_ja.append(weathercode[json_data['hourly']['weathercode'][i]])
+
+    for i in range(0, len(json_data['hourly']['time'])):
+        result = json_data['hourly']['time'][i] + " 気温：" + str(json_data['hourly']['temperature_2m'][i]) + "℃ 降水確率：" + str(json_data['hourly']['precipitation_probability'][i]) + "％ 天気：" + weather_ja[i] + "\n"
+
+    return result
+
+if __name__ == "__main__":
+    main()

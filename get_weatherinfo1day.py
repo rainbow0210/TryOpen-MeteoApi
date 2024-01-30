@@ -35,28 +35,36 @@ weathercode = {
     99 : "軽いひょうをともなうらい雨",
 }
 
-# 地名から緯度と経度の情報を手に入れる
-val = input("天気の情報を手に入れたい市区町村名・地名等を入れてください；")
+def main():
+    # 地名から緯度と経度の情報を手に入れる
+    val = input("天気の情報を手に入れたい市区町村名・地名等を入れてください；")
+    print(geocodeing(val))
 
-try:
-    location = geolocator.geocode(val)
-    ido = location.latitude      #緯度
-    keido = location.longitude     #経度
-except Exception as e:
-    print("エラーが発生しました。プログラムを終了します。")
-    exit()
+def geocodeing(val):
+    try:
+        location = geolocator.geocode(val)
+        ido = location.latitude      #緯度
+        keido = location.longitude     #経度
 
-weather_api = "https://api.open-meteo.com/v1/forecast?latitude=" + str(ido) + "&longitude=" + str(keido) + "&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=1&models=best_match"
-api_info = requests.get(weather_api)
-json_data = api_info.json()
+        result = fetch_api(ido, keido)
 
-#print(json_data)
+        return result
+    except Exception as e:
+        print("エラーが発生しました。プログラムを終了します。")
+        exit()
 
-weather_ja = weathercode[json_data['daily']['weathercode'][0]]
+def fetch_api(ido, keido):
+    weather_api = "https://api.open-meteo.com/v1/forecast?latitude=" + str(ido) + "&longitude=" + str(keido) + "&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=1&models=best_match"
+    api_info = requests.get(weather_api)
+    json_data = api_info.json()
 
-print(json_data['daily']['time'][0] +
-      " 天気：" + weather_ja +
-      " 最高気温：" + str(json_data['daily']['temperature_2m_max'][0]) +
-      "℃ 最低気温：" + str(json_data['daily']['temperature_2m_min'][0]) +
-      " ℃ 最大降水確率：" + str(json_data['daily']['precipitation_probability_max'][0]) +
-      "％")
+    #print(json_data)
+
+    weather_ja = weathercode[json_data['daily']['weathercode'][0]]
+
+    result = json_data['daily']['time'][0] + " 天気：" + weather_ja + " 最高気温：" + str(json_data['daily']['temperature_2m_max'][0]) + "℃ 最低気温：" + str(json_data['daily']['temperature_2m_min'][0]) + " ℃ 最大降水確率：" + str(json_data['daily']['precipitation_probability_max'][0]) + "％"
+
+    return result
+
+if __name__ == "__main__":
+    main()
